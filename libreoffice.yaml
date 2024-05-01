@@ -111,6 +111,7 @@ environment:
       - git
   environment:
     JAVA_HOME: /usr/lib/jvm/java-17-openjdk
+    PARALLELISM: 40
 
 pipeline:
   - uses: git-checkout
@@ -120,10 +121,12 @@ pipeline:
       expected-commit: fc604d5980a783e74808a001f1918a603d920494
 
   - runs: |
-      ./autogen.sh --prefix=/usr --disable-gui --without-java --disable-postgresql-sdbc --disable-mariadb-sdbc --disable-gstreamer-1-0
       sed -i 's/bootstrap: check-if-root/bootstrap: /g' Makefile.in
+      ./autogen.sh --prefix=/usr --disable-gui --without-java --disable-postgresql-sdbc --disable-mariadb-sdbc --disable-gstreamer-1-0 --with-system-cairo
+      make clean
+      make fetch
 
-  - runs: make -j$(nproc)
+  - runs: make
 
   - uses: autoconf/make-install
 
