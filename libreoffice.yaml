@@ -1,6 +1,6 @@
 package:
   name: libreoffice
-  version: 24.2.1.1
+  version: 24.2.3.1
   epoch: 0
   description:
   copyright:
@@ -32,7 +32,13 @@ package:
 
 environment:
   contents:
+    keyring:
+      - https://packages.wolfi.dev/os/wolfi-signing.rsa.pub
+    repositories:
+      - https://packages.wolfi.dev/os
     packages:
+      - wolfi-base
+      - ca-certificates-bundle
       - ant
       - argon2-dev
       - autoconf
@@ -98,9 +104,11 @@ environment:
       - perl
       - pkgconf
       - pkgconf-dev
-      - python-3.11
-      - python-3.11-dev
+      - python-3.10
+      - python-3.10-dev
       - zip
+      - zlib
+      - git
   environment:
     JAVA_HOME: /usr/lib/jvm/java-17-openjdk
 
@@ -109,30 +117,10 @@ pipeline:
     with:
       repository: https://github.com/LibreOffice/core
       tag: libreoffice-${{package.version}}
-      expected-commit: 359ef544e625d2ffbfced462ab37bd593ca85fa7
+      expected-commit: fc604d5980a783e74808a001f1918a603d920494
 
   - runs: |
-      cat > autogen.input <<EOF
-      --with-jdk-home=$JAVA_HOME
-      --enable-python=system
-      --enable-split-debug
-      --prefix=/usr
-      --with-system-argon2
-      --with-system-libcmis
-      --with-system-expat
-      --with-system-gpgmepp
-      --with-system-liblangtag
-      --with-system-openssl
-      --with-system-cairo
-      --with-system-zlib
-      --with-system-boost
-      --with-system-curl
-      --host=${{host.triplet.gnu}}
-      --build=${{host.triplet.gnu}}
-      --without-junit
-      --without-galleries
-      EOF
-      ./autogen.sh
+      ./autogen.sh --prefix=/usr --disable-gui --without-java --disable-postgresql-sdbc --disable-mariadb-sdbc --disable-gstreamer-1-0
       sed -i 's/bootstrap: check-if-root/bootstrap: /g' Makefile.in
 
   - runs: make -j$(nproc)
